@@ -7,7 +7,7 @@ CRFsuite Data Structure
 The crf data structure is as follows:
 
 - A crfsuite dataset is a collection of crfsuite instances
-- A crfsuite instance is a collection of crfsuite items, 
+- A crfsuite instance is a collection of crfsuite items,
   each with an integer item label.  The label is known for training data,
   and is learned for test data.
 - A crfsuite item is a collection of crfsuite attributes
@@ -59,22 +59,22 @@ from scipy.sparse import csr_matrix
 # utility routines & constants
 #  used in the interfaces below
 
-FITTYPE_DICT = {'1d':'crf1d'}
+FITTYPE_DICT = {'1d': 'crf1d'}
 
-ALGORITHM_DICT = {'lbfgs':'lbfgs',
-                  'l2sgd':'l2sgd',
-                  'ap':'averaged-perceptron',
-                  'averaged-perceptron':'averaged_perceptron',
-                  'pa':'passive-aggressive',
-                  'passive-aggressive':'passive-aggressive',
-                  'arow':'arow'}
+ALGORITHM_DICT = {'lbfgs': 'lbfgs',
+                  'l2sgd': 'l2sgd',
+                  'ap': 'averaged-perceptron',
+                  'averaged-perceptron': 'averaged_perceptron',
+                  'pa': 'passive-aggressive',
+                  'passive-aggressive': 'passive-aggressive',
+                  'arow': 'arow'}
 
 
 #----------------------------------------------------------------------
-# progress function.  
+# progress function.
 #  this is a helper function to print a real-time
 #  progress report when reading files
-cdef int progress(FILE* fpo, int prev, int current):
+cdef int progress(FILE *fpo, int prev, int current):
     while(prev < current):
         prev += 1
         if prev % 2 == 0:
@@ -146,7 +146,7 @@ cdef int read_data(crfsuite_data_t* data,
         elif token.type == IWA_ITEM:
             if (lid == -1):
                 lid = labels.get(labels, token.attr)
-            else: 
+            else:
                 crfsuite_attribute_init(&cont)
                 cont.aid = attrs.get(attrs, token.attr)
                 if (token.value) and dereference(token.value):
@@ -168,7 +168,7 @@ cdef int read_data(crfsuite_data_t* data,
 
     return n
 
-        
+
 cdef int read_data_for_tagging(crfsuite_data_t* data,
                                FILE* fpi,
                                FILE* fpo,
@@ -239,7 +239,7 @@ cdef int read_data_for_tagging(crfsuite_data_t* data,
                 lid = labels.to_id(labels, token.attr)
                 if lid < 0:
                     lid = n_labels
-            else: 
+            else:
                 aid = attrs.to_id(attrs, token.attr)
                 # If id is in attrs, then associate the attribute
                 # with the current item.
@@ -270,8 +270,6 @@ cdef int message_callback(void *instance, char *format, va_list args):
     vfprintf(stdout, format, args)
     fflush(stdout)
     return 0
-
-
 
 
 cdef output_tagging_result(FILE *fpo,
@@ -322,7 +320,7 @@ cdef output_tagging_result(FILE *fpo,
 
 cdef class CRFDict(object):
     """Wrapper for crfsuite dictionary
-    
+
     This is a python class which wraps the dictionary used internally
     in crfsuite.  The crfsuite dictionary is a list of (id, key) pairs,
     where id is an integer, and key is a string.  Though called a
@@ -341,13 +339,13 @@ cdef class CRFDict(object):
 
     cdef void set_internal_dict(CRFDict self, crfsuite_dictionary_t* dict):
         """
-        C-only function that can be used to wrap an existing crfsuite 
+        C-only function that can be used to wrap an existing crfsuite
         dictionary instance.  The current dictionary instance will be
         dereferenced.
         """
         if dict == NULL:
             raise ValueError("Cannot set NULL dictionary")
-        
+
         # deallocate dictionary: this duplicates code in __dealloc__
         if self.dict != NULL:
             self.dict.release(self.dict)
@@ -479,11 +477,11 @@ cdef class CRFDict(object):
             L[i] = str(c)
             self.dict.free(self.dict, c)
         return L
-        
+
 
 cdef class CRFDataset(object):
     """Container for CRF data
-    
+
     a crfsuite data struct contains an array of instances, and
     two dictionaries: attrs and labels.
 
@@ -556,16 +554,14 @@ cdef class CRFDataset(object):
         self.n_labels = self.labels.n_items
 
     #TODO: think about how to handle labels/features with new data groups
-    #TODO: add_group_from_array documentation
     #TODO: change asserts to ValueErrors
-  
     #TODO: add cython types & use csr format to increase speed
     def add_group_from_array(self,
                              data,
                              labels,
                              instances,
-                             feature_ids = None,
-                             label_ids = None):
+                             feature_ids=None,
+                             label_ids=None):
         """Add a group of instances from an array
 
         Parameters
@@ -573,7 +569,7 @@ cdef class CRFDataset(object):
         data : array, matrix, or sparse matrix shape=(n_samples, n_features)
             Input data.  data[i, j] represents the weight of the j^th
             feature for item i.
-        
+
         labels : integer array, shape=(n_samples,)
             the integer labels associated with each item
 
@@ -603,9 +599,7 @@ cdef class CRFDataset(object):
 
             an error will be raised if label_ids is specified and previous
             groups are present [Fix this]
-        
-
-        """        
+        """
         cdef crfsuite_instance_t inst
         cdef crfsuite_item_t item
         cdef crfsuite_attribute_t attr
@@ -629,7 +623,7 @@ cdef class CRFDataset(object):
 
         else:
             # TODO: think about this:
-            #  if feature_ids are specified and we already have an attr dict 
+            #  if feature_ids are specified and we already have an attr dict
             #  defined, there may be unexpected results.  To be safe, we'll
             #  just raise an error in this case
             assert self.n_features == 0
@@ -637,7 +631,6 @@ cdef class CRFDataset(object):
         assert len(feature_ids) == data.shape[1]
         self.attrs.add_keys_batch(feature_ids)
         self.n_features = len(feature_ids)
-                
 
         #------------------------------------------------------------
         # Take care of label ids
@@ -648,11 +641,11 @@ cdef class CRFDataset(object):
                 label_ids = self.get_label_list()
         else:
             # TODO: think about this:
-            #  if label_ids are specified and we already have a label dict 
+            #  if label_ids are specified and we already have a label dict
             #  defined, there may be unexpected results.  To be safe, we'll
             #  just raise an error in this case
             assert self.n_labels == 0
-            
+
         self.labels.add_keys_batch(label_ids)
         self.n_labels = len(label_ids)
 
@@ -666,7 +659,7 @@ cdef class CRFDataset(object):
         for i from 0 <= i < self.n_instances:
             crfsuite_instance_init(&inst)
             inst.group = self.n_groups
-            
+
             jmin = instances[i]
             if i < self.n_instances - 1:
                 jmax = instances[i + 1]
@@ -738,7 +731,7 @@ cdef class CRFDataset(object):
         #      the same dataset?  This gets complicated.
         cdef char* c_string
         cdef FILE* fp_input
-        
+
         #------------------------------------------------------------
         # check input parameters
         if type(training_files) == type("string"):
@@ -769,7 +762,7 @@ cdef class CRFDataset(object):
 
             fpo.write('Number of instances: %i\n' % n)
             fpo.write('Seconds required: %.3f\n' % (time.time() - t0))
-        
+
             fclose(fp_input)
 
         #------------------------------------------------------------
@@ -787,7 +780,6 @@ cdef class CRFDataset(object):
                                           attr_dict,
                                           label_dict,
                                           logfile=None):
-        
         """add group from an Items With Attributes (IWA) file"""
         #TODO: add documentation
         #TODO: think about handling groups/labels/features with mixed input
@@ -795,7 +787,7 @@ cdef class CRFDataset(object):
         cdef FILE* fp_input
 
         assert self.n_features == 0
-        
+
         #------------------------------------------------------------
         # check input parameters
         if type(tagging_files) == type("string"):
@@ -831,7 +823,7 @@ cdef class CRFDataset(object):
 
             fpo.write('Number of instances: %i\n' % n)
             fpo.write('Seconds required: %.3f\n' % (time.time() - t0))
-        
+
             fclose(fp_input)
 
         #------------------------------------------------------------
@@ -853,7 +845,7 @@ cdef class CRFDataset(object):
         fpo.write("Number of attributes: %d\n" % self.n_features)
         fpo.write("Number of labels: %d\n" % self.n_labels)
         fpo.write("\n")
-        
+
     def split_data(self, n_groups=1, shuffle=False):
         """Split the data into several groups for cross-validation.
 
@@ -881,7 +873,7 @@ cdef class CRFDataset(object):
         for i from 0 <= i < self.data.num_instances:
             self.data.instances[i].group = (i % n_groups)
         self.n_groups = n_groups
-        
+
         #TODO : make sure groups count from zero
 
     def to_matrix(self):
@@ -930,7 +922,7 @@ cdef class CRFTrainer(object):
 
     algorithm: string; default='lbfgs'
         Training algorithm to be used.  Options are
-        
+
         - 'lbfgs': L-BFGS with L1/L2 regularization
         - 'l2sgd': SGD with L2-regularization
         - 'ap': Averaged Perceptron
@@ -942,7 +934,7 @@ cdef class CRFTrainer(object):
         TODO: outline parameter options
     """
     cdef crfsuite_trainer_t *trainer
-    
+
     def __init__(self,
                  fittype="1d",
                  algorithm="lbfgs",
@@ -955,7 +947,7 @@ cdef class CRFTrainer(object):
         alg_id = ALGORITHM_DICT.get(algorithm)
         if alg_id is None:
             raise ValueError("Unknown algorithm '%s'" % algorithm)
-        
+
         # Initialize the trainer instance
         trainer_id = "train/%s/%s" % (fit_id, alg_id)
         if not crfsuite_create_instance(trainer_id, <void**> &self.trainer):
@@ -974,7 +966,7 @@ cdef class CRFTrainer(object):
         # Set callback procedures that receive messages and taggers
         self.trainer.set_message_callback(self.trainer, NULL,
                                           &message_callback)
-        
+
     def __cinit__(self):
         self.trainer = NULL
 
@@ -986,7 +978,7 @@ cdef class CRFTrainer(object):
     def train(self, CRFDataset data,
               cross_validate=False,
               holdout=0,
-              model_file = None,
+              model_file=None,
               fpo=None):
         """Train the CRFTrainer
 
@@ -1020,7 +1012,7 @@ cdef class CRFTrainer(object):
         in memory without first saving it in a temporary file.  This
         deficiency of the library could be fairly easily corrected with
         an upstream patch which would allow the user to pass a file stream
-        rather than a file name to the training algorithm.  
+        rather than a file name to the training algorithm.
         """
         if model_file is None or model_file == "":
             model_file = tempfile.mktemp()
@@ -1036,7 +1028,7 @@ cdef class CRFTrainer(object):
             pass
         else:
             fpo = open(fpo, 'w')
-        
+
         if cross_validate:
             for i from 0 <= i < data.n_groups:
                 fpo.write("===== Cross validation (%d/%d) =====\n"
@@ -1044,7 +1036,7 @@ cdef class CRFTrainer(object):
                 if self.trainer.train(self.trainer, &data.data, "", i):
                     raise ValueError("training failed")
                 fpo.write('\n')
-            
+
             return None
 
         else:
@@ -1068,6 +1060,7 @@ cdef class CRFModel(object):
         instance will be created from this file
     """
     cdef crfsuite_model_t *model
+
     def __init__(self, model_file):
         if crfsuite_create_instance_from_file(model_file,
                                               <void**>&self.model):
@@ -1112,7 +1105,7 @@ cdef class CRFModel(object):
         The difference between loading a dataset in this way and just loading
         the filename directly is that when loading tagging data, only the
         attributes which are in the training set are loaded.  In addition,
-        the attributes within the training data and tagging data are 
+        the attributes within the training data and tagging data are
         guaranteed to be associated  with the same integer ids.
 
         Parameters
@@ -1126,7 +1119,7 @@ cdef class CRFModel(object):
             the data appropriate for tagging.
         """
         cdef CRFDataset data = CRFDataset()
-        
+
         data.add_groups_from_files_for_tagging(filename,
                                                self.get_attr_dict(),
                                                self.get_label_dict(),
@@ -1155,11 +1148,11 @@ cdef class CRFModel(object):
             fpo = open(fpo, 'w')
 
         self.model.dump(self.model, PyFile_AsFile(fpo))
-    
+
 
 cdef class CRFTagger(object):
     """Wrapper for the crfsuite tagger structure
-    
+
     Parameters
     ----------
     model: CRFModel object
@@ -1241,7 +1234,7 @@ cdef class CRFTagger(object):
         crfsuite_evaluation_init(&eval, L)
 
         fpo = sys.stdout
-        
+
         for i from 0 <= i < data_ptr.num_instances:
             inst = data_ptr.instances[i]
 
@@ -1261,7 +1254,6 @@ cdef class CRFTagger(object):
                 crfsuite_evaluation_accmulate(&eval, inst.labels,
                                               output_arr + output_idx,
                                                inst.num_items)
-                
 
             if not quiet:
                 output_tagging_result(PyFile_AsFile(fpo), self.tagger,
@@ -1288,7 +1280,6 @@ def crfsuite_learn(CRFDataset crf_data,
                    log_to_file=False,
                    logbase="log.crfsuite",
                    rseed=None):
-    
     """Perform Conditional Random Field learning
 
     This calls python wrappers of the library crfsuite
@@ -1300,13 +1291,13 @@ def crfsuite_learn(CRFDataset crf_data,
 
     fittype: string
         specify a graphical model (default = '1d')
-        
+
         - '1d' : first-order Markov CRF with state and transition features;
           transition features are not conditioned on observations
 
     algorithm: string
         specify a training algorithm (default = 'lbfgs')
-        
+
         - 'lbfgs' : L-BFGS with L1/L2 regularization
         - 'l2sgd' : SGD with L2-regularization
         - 'ap' :    Averaged Perceptron
@@ -1323,7 +1314,7 @@ def crfsuite_learn(CRFDataset crf_data,
     split: integer
         For split = N > 0, split the instances into N groups. This option
         is useful for holdout evaluation and cross validation. (default = 0)
-        
+
     holdout: integer
         For holdout = M >= 0 , use the M-th data group (zero-indexed)
         for holdout evaluation and the rest for training.
@@ -1360,13 +1351,13 @@ def crfsuite_learn(CRFDataset crf_data,
     -----
     """
     trainer = CRFTrainer(fittype, algorithm, **param_dict)
-    
+
     cdef int n, i, ret
 
     #----------------------------------------------------------------------
     # Open a logfile if necessary
     fpo = sys.stdout
-    
+
     if log_to_file:
         fname = '%s_%s' % (logbase, algorithm)
         for opt in sorted(param_dict.keys()):
