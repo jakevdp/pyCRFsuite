@@ -24,9 +24,9 @@ Testing
 -------
 There are a few basic test scripts in the head directory.  ``test.py`` will
 read a small dataset from ``example_files``, then run a basic training and
-tagging operation.  ``crfsuite_test.csh`` runs the same operation using the
+tagging operation.  ``crfsuite_test.sh`` runs the same operation using the
 command-line frontend provided by crfsuite.  To compare the results of the
-training and tagging, run ``compare_output.csh``.  This will print all the
+training and tagging, run ``compare_output.sh``.  This will print all the
 places where the tagging results differ.
 
 TODO

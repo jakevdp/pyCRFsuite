@@ -1,6 +1,6 @@
 *~
-*pyc
-*so
+*.pyc
+*.so
 *.model
 build
 src/build
