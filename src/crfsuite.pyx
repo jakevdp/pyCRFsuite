@@ -264,11 +264,15 @@ cdef int read_data_for_tagging(crfsuite_data_t* data,
 
 
 #------------------------------------------------------------
-# default callback function for the trainer
+# callback functions for the trainer
 #
 cdef int message_callback(void *instance, char *format, va_list args):
     vfprintf(stdout, format, args)
     fflush(stdout)
+    return 0
+
+cdef int message_callback_quiet(void *instance, char *format,
+                                va_list args):
     return 0
 
 
@@ -911,7 +915,8 @@ cdef class CRFDataset(object):
         return csr_matrix((data[:n], idx[:n], indptr),
                           shape=(self.n_samples, self.n_features))
 
-
+# TODO: think about a way to control the message_callback from
+# a python keyword.
 cdef class CRFTrainer(object):
     """Wrapper for crfsuite training procedure
 
@@ -929,6 +934,9 @@ cdef class CRFTrainer(object):
         - 'pa': Passive Aggressive
         - 'arow': Adaptive Regularization of Weights (AROW)
 
+    quiet: boolean; default=False
+        If true, suppress stdout output of training
+
     other keywords:
         Other keywords are parameters specific to the training algorithm
         TODO: outline parameter options
@@ -938,6 +946,7 @@ cdef class CRFTrainer(object):
     def __init__(self,
                  fittype="1d",
                  algorithm="lbfgs",
+                 quiet=False,
                  **kwargs):
         # Get the fit and algorithm ids
         fit_id = FITTYPE_DICT.get(fittype)
@@ -959,13 +968,18 @@ cdef class CRFTrainer(object):
         for (name, value) in kwargs.iteritems():
             params = self.trainer.params(self.trainer)
             if params.set(params, name, value):
+                params.release(params)
                 raise ValueError("Parameter %s=%s invalid for algorithm %s"
                                  % (name, value, algorithm))
             params.release(params)
 
         # Set callback procedures that receive messages and taggers
-        self.trainer.set_message_callback(self.trainer, NULL,
-                                          &message_callback)
+        if quiet:
+            self.trainer.set_message_callback(self.trainer, NULL,
+                                              &message_callback_quiet)
+        else:
+            self.trainer.set_message_callback(self.trainer, NULL,
+                                              &message_callback)
 
     def __cinit__(self):
         self.trainer = NULL
@@ -1024,7 +1038,7 @@ cdef class CRFTrainer(object):
 
         if fpo is None:
             fpo = sys.stdout
-        elif type(fpo) == file:
+        elif isinstance(fpo, file):
             pass
         else:
             fpo = open(fpo, 'w')
