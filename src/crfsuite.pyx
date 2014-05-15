@@ -64,7 +64,7 @@ FITTYPE_DICT = {'1d': 'crf1d'}
 ALGORITHM_DICT = {'lbfgs': 'lbfgs',
                   'l2sgd': 'l2sgd',
                   'ap': 'averaged-perceptron',
-                  'averaged-perceptron': 'averaged_perceptron',
+                  'averaged-perceptron': 'averaged-perceptron',
                   'pa': 'passive-aggressive',
                   'passive-aggressive': 'passive-aggressive',
                   'arow': 'arow'}
